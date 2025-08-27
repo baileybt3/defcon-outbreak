@@ -4,7 +4,7 @@
 Defcon: Outbreak is a zombie survival game
 
 #### Tech Stack ####
-Engine: Unity (C#)  
+Engine: Unity 6.2 (C#) (6000.2.1f1)
 Version Control: Github  
 Language: C#  
 Other Tools: Blender, Mixamo
