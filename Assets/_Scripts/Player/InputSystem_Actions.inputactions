@@ -25,7 +25,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Combat",
+                    "name": "Fire",
                     "type": "Button",
                     "id": "d9183057-ae5c-4712-98fc-393a8dd980cf",
                     "expectedControlType": "",
@@ -108,7 +108,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Combat",
+                    "action": "Fire",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

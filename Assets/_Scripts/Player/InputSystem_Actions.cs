@@ -111,7 +111,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Combat"",
+                    ""name"": ""Fire"",
                     ""type"": ""Button"",
                     ""id"": ""d9183057-ae5c-4712-98fc-393a8dd980cf"",
                     ""expectedControlType"": """",
@@ -194,7 +194,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Combat"",
+                    ""action"": ""Fire"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -268,7 +268,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_PlayerInputActions = asset.FindActionMap("PlayerInputActions", throwIfNotFound: true);
         m_PlayerInputActions_Move = m_PlayerInputActions.FindAction("Move", throwIfNotFound: true);
         m_PlayerInputActions_Look = m_PlayerInputActions.FindAction("Look", throwIfNotFound: true);
-        m_PlayerInputActions_Combat = m_PlayerInputActions.FindAction("Combat", throwIfNotFound: true);
+        m_PlayerInputActions_Fire = m_PlayerInputActions.FindAction("Fire", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
@@ -351,7 +351,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private List<IPlayerInputActionsActions> m_PlayerInputActionsActionsCallbackInterfaces = new List<IPlayerInputActionsActions>();
     private readonly InputAction m_PlayerInputActions_Move;
     private readonly InputAction m_PlayerInputActions_Look;
-    private readonly InputAction m_PlayerInputActions_Combat;
+    private readonly InputAction m_PlayerInputActions_Fire;
     /// <summary>
     /// Provides access to input actions defined in input action map "PlayerInputActions".
     /// </summary>
@@ -372,9 +372,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Look => m_Wrapper.m_PlayerInputActions_Look;
         /// <summary>
-        /// Provides access to the underlying input action "PlayerInputActions/Combat".
+        /// Provides access to the underlying input action "PlayerInputActions/Fire".
         /// </summary>
-        public InputAction @Combat => m_Wrapper.m_PlayerInputActions_Combat;
+        public InputAction @Fire => m_Wrapper.m_PlayerInputActions_Fire;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -407,9 +407,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Look.started += instance.OnLook;
             @Look.performed += instance.OnLook;
             @Look.canceled += instance.OnLook;
-            @Combat.started += instance.OnCombat;
-            @Combat.performed += instance.OnCombat;
-            @Combat.canceled += instance.OnCombat;
+            @Fire.started += instance.OnFire;
+            @Fire.performed += instance.OnFire;
+            @Fire.canceled += instance.OnFire;
         }
 
         /// <summary>
@@ -427,9 +427,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Look.started -= instance.OnLook;
             @Look.performed -= instance.OnLook;
             @Look.canceled -= instance.OnLook;
-            @Combat.started -= instance.OnCombat;
-            @Combat.performed -= instance.OnCombat;
-            @Combat.canceled -= instance.OnCombat;
+            @Fire.started -= instance.OnFire;
+            @Fire.performed -= instance.OnFire;
+            @Fire.canceled -= instance.OnFire;
         }
 
         /// <summary>
@@ -550,11 +550,11 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnLook(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Combat" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Fire" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnCombat(InputAction.CallbackContext context);
+        void OnFire(InputAction.CallbackContext context);
     }
 }
