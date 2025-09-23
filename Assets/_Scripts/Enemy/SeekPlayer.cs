@@ -13,8 +13,7 @@ public class SeekPlayer : MonoBehaviour
 
     //Movement States
     private Vector3 targetPosition;
-    private bool hasTarget = false;
-
+    
     private void Start()
     {
         moveSpeed = 2f;
