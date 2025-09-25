@@ -1,7 +1,6 @@
 using UnityEngine;
 
-
-public class SeekPlayer : MonoBehaviour
+public class EnemyHealth : MonoBehaviour
 {
     // Movement Constants
     [SerializeField] private float moveSpeed;
