@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;
 
-public class SceneController : MonoBehaviour
+public class MenuController : MonoBehaviour
 {
     public Button startButton;
 
