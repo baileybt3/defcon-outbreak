@@ -4,11 +4,11 @@ using System.Collections.Generic;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [SerializeField] public GameObject enemyPrefab;
+    [SerializeField] public GameObject[] enemyPrefabs;
     public float spawnInterval = 3f; 
     public int maxEnemies = 5;
-    public float timer;
 
+    public float timer;
     private int currentEnemies = 0;
 
     void Start()
@@ -24,23 +24,29 @@ public class EnemySpawner : MonoBehaviour
 
         if(timer <= 0 && currentEnemies < maxEnemies)
         {
-            GameObject enemy = Instantiate(enemyPrefab, transform.position, Quaternion.identity);
-
-            EnemyDeathTracker tracker = enemy.AddComponent<EnemyDeathTracker>();
-            tracker.spawner = this;
-
-            currentEnemies++;
+            SpawnEnemy();
             timer = spawnInterval;
         }
     }
 
+    private void SpawnEnemy()
+    {
+        if (enemyPrefabs.Length == 0) return;
+
+        int index = Random.Range(0, enemyPrefabs.Length);
+        GameObject chosenPrefab = enemyPrefabs[index];
+
+        GameObject enemy = Instantiate(chosenPrefab, transform.position, Quaternion.identity);
+
+        EnemyDeathTracker tracker = enemy.AddComponent<EnemyDeathTracker>();
+        tracker.spawner = this;
+
+        currentEnemies++;
+    }
+
     public void EnemyDied()
     {
-        currentEnemies--;
-        if (currentEnemies < 0)
-        {
-            currentEnemies = 0;
-        }
+        currentEnemies = Mathf.Max(0, currentEnemies - 1);
     }
 
 

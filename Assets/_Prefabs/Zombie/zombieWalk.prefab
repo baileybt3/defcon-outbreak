@@ -15,7 +15,7 @@ PrefabInstance:
     - target: {fileID: 7519321484090420282, guid: 4d99d47e6e48a714c895368aed8a8fa6, type: 3}
       propertyPath: m_Avatar
       value: 
-      objectReference: {fileID: 9000000, guid: e88b81dbbde6e97419fd1f6bdc41d4ca, type: 3}
+      objectReference: {fileID: 9000000, guid: d7ab0824757c8cb44af34aaa3f93b51e, type: 2}
     - target: {fileID: 7519321484090420282, guid: 4d99d47e6e48a714c895368aed8a8fa6, type: 3}
       propertyPath: m_Enabled
       value: 1
@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   maxHealth: 3
-  moveSpeed: 10
+  moveSpeed: 8
   attackDamage: 10
   attackRate: 1.5
   damageTextPrefab: {fileID: 0}

@@ -86,7 +86,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: walk
+  m_Name: run
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -101,7 +101,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -203655887218126122, guid: 47ad840a2461c184186935b0515a29e9, type: 3}
+  m_Motion: {fileID: -203655887218126122, guid: 50bbe7342dcff8848974b0e84736928c, type: 3}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -113,7 +113,7 @@ AnimatorController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ZombieWalk
+  m_Name: ZombieRun
   serializedVersion: 5
   m_AnimatorParameters:
   - m_Name: Blend
