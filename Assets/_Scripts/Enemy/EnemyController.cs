@@ -9,7 +9,9 @@ public class EnemyController : MonoBehaviour
 
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
-    private float radiusOfSatisfaction = 1f; 
+    [SerializeField] private float radiusOfSatisfaction = 2.0f;
+    private Rigidbody rb;
+    private Vector3 pendingMove;
 
     [Header("Attack")]
     [SerializeField] private int attackDamage = 10;
@@ -27,14 +29,23 @@ public class EnemyController : MonoBehaviour
     
     // --- Unity Lifecycle Methods ---
 
-    private void Start() // MODIFIED: Simplified
+    private void Start()
     {
         currentHealth = maxHealth;
-        lastAttackTime = Time.time;
+        lastAttackTime = Time.time - attackRate;
         animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody>();
         animator.SetInteger("State", 0);
     }
+    private void FixedUpdate()
+    {
+        if (isDead) return;
 
+        if(!isAttacking && pendingMove.sqrMagnitude > 0f)
+        {
+            rb.MovePosition(rb.position + pendingMove * Time.fixedDeltaTime);
+        }
+    }
     void Update()
     {
         if (isDead) return;
@@ -66,7 +77,6 @@ public class EnemyController : MonoBehaviour
     {
         // Use PlayerController.Instance.transform for player position
         Vector3 playerPos = PlayerController.Instance.transform.position;
-        
         Vector3 towardsTarget = playerPos - transform.position; // Use local transform
         towardsTarget.y = 0f;
 
@@ -74,8 +84,15 @@ public class EnemyController : MonoBehaviour
 
         if (distance <= radiusOfSatisfaction)
         {
-            AttackPlayer();
             isAttacking = true;
+            pendingMove = Vector3.zero;
+            if (rb != null)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+
+            AttackPlayer();
             return;
         }
         else
@@ -83,15 +100,15 @@ public class EnemyController : MonoBehaviour
             isAttacking = false;
         }
 
-            // --- Movement Logic (Updated to use transform) ---
-            towardsTarget = towardsTarget.normalized;
+        Vector3 dir = towardsTarget.normalized;
+        if(dir.sqrMagnitude > 0.0001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(dir);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation, targetRotation, 10f * Time.deltaTime);
+        }
 
-        Quaternion targetRotation = Quaternion.LookRotation(towardsTarget);
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, 0.1f);
-
-        float targetSpeed = moveSpeed;
-
-        GetComponent<Rigidbody>().MovePosition(transform.position + transform.forward * targetSpeed * Time.deltaTime);
+        pendingMove = transform.forward * moveSpeed;
     }
 
     void AttackPlayer()

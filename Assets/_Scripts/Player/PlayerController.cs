@@ -200,7 +200,7 @@ public class PlayerController : MonoBehaviour
         SceneManager.LoadScene(currentSceneIndex);
     }
     
-    // --- RECOIL EXECUTION (Unchanged) ---
+    // --- Recoil --
     public void DoRecoil()
     {
         float sideRecoil = Random.Range(-1f, 1f) * (recoilKick / 5f);
