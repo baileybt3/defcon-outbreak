@@ -19,9 +19,12 @@ public class PlayerController : MonoBehaviour
     public bool IsAlive => currentHealth > 0;
 
     [Header("Movement")]
-    public float moveSpeed = 5f;
+    public float moveSpeed = 4f;
     public Vector2 moveInput;
     private Vector3 velocity;
+
+    private bool isSprinting = false;
+    public float sprintSpeed = 7f;
 
     // Jumping
     public float gravity = -9.81f;
@@ -75,6 +78,9 @@ public class PlayerController : MonoBehaviour
         inputActions.PlayerInputActions.Crouch.started += _ => StartCrouch();
         inputActions.PlayerInputActions.Crouch.canceled += _ => StopCrouch();
 
+        inputActions.PlayerInputActions.Sprint.started += _ => StartSprint();
+        inputActions.PlayerInputActions.Sprint.canceled += _ => StopSprint();
+
         //inputActions.PlayerInputActions.Interact.performed += ctx => TryInteract();
     }
 
@@ -108,7 +114,16 @@ public class PlayerController : MonoBehaviour
 
         // Movement
         Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
-        float currentSpeed = isCrouching ? crouchSpeed : moveSpeed;
+        float currentSpeed = moveSpeed;
+
+        if (isCrouching)
+        {
+            currentSpeed = crouchSpeed;
+        }
+        else if (isSprinting)
+        {
+            currentSpeed = sprintSpeed;
+        }
 
         // Ground check
         if (controller.isGrounded && velocity.y < 0)
@@ -140,6 +155,16 @@ public class PlayerController : MonoBehaviour
     {
         controller.height = standingHeight;
         isCrouching = false;
+    }
+
+    void StartSprint()
+    {
+        isSprinting = true;
+    }
+
+    void StopSprint()
+    {
+        isSprinting = false;
     }
 
     //void TryInteract()
