@@ -8,7 +8,7 @@ public class PlayerCombat : MonoBehaviour
     [Header("Gun Settings")]
     public GameObject bulletPrefab;
     public Transform firePoint;
-    public float bulletSpeed = 20f;
+    public float bulletSpeed = 35f;
     public float fireRate = 0.2f;
     public float reloadTime = 1.5f;
     
@@ -17,8 +17,8 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField] private float firePointDistance = 10f; // Distance used to calculate the spread vector
 
     [Header("Ammo Settings")]
-    public int maxAmmo = 10;
-    public int reserveAmmo = 30;
+    public int maxAmmo = 6;
+    public int reserveAmmo = 24;
     private int currentAmmo;
     private bool isReloading = false;
 

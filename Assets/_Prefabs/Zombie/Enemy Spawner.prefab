@@ -81,4 +81,6 @@ MonoBehaviour:
   - {fileID: 8655690166845803188, guid: 94c98f6c523735b42bc2b93d834da1a3, type: 3}
   spawnInterval: 5
   maxEnemies: 10
-  timer: 0
+  totalToSpawn: 20
+  keyPrefab: {fileID: 3376900758239840336, guid: 6324232326e0c9e48a5f64ba01942d10, type: 3}
+  keyDropPoint: {fileID: 0}

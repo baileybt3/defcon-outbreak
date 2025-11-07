@@ -4,49 +4,81 @@ using System.Collections.Generic;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Spawn Settings")]
-    [SerializeField] public GameObject[] enemyPrefabs;
-    public float spawnInterval = 3f; 
-    public int maxEnemies = 5;
+    [SerializeField] private GameObject[] enemyPrefabs;
+    [SerializeField] private float spawnInterval = 3f;
+    [SerializeField] private int maxEnemies = 5;
+    [SerializeField] private int totalToSpawn = 20;
 
-    public float timer;
-    private int currentEnemies = 0;
+    [Header("Key Drop")]
+    [SerializeField] private GameObject keyPrefab;
+    [SerializeField] private Transform keyDropPoint;
+    [SerializeField] private string keySearchTag = "Key";
 
-    void Start()
+    private float timer;
+    private int aliveCount = 0;
+    private int spawnedCount = 0;
+    private bool keyDropped = false;
+    private static bool anyKeyDropped = false;
+
+    private void Start()
     {
         timer = spawnInterval;
     }
 
-    void Update()
+    private void Update()
     {
+        if (spawnedCount >= totalToSpawn) return;
+
         timer -= Time.deltaTime;
 
-        int currentEnemies = GameObject.FindGameObjectsWithTag("Zombie").Length;
-
-        if(timer <= 0 && currentEnemies < maxEnemies)
+        if(timer <= 0f)
         {
-            SpawnEnemy();
+            TrySpawn();
             timer = spawnInterval;
         }
     }
 
-    private void SpawnEnemy()
+    private void TrySpawn()
     {
-        if (enemyPrefabs.Length == 0) return;
+        if (aliveCount >= maxEnemies)
+            return;
 
-        int index = Random.Range(0, enemyPrefabs.Length);
-        GameObject chosenPrefab = enemyPrefabs[index];
+        if (enemyPrefabs == null || enemyPrefabs.Length == 0)
+            return;
 
-        GameObject enemy = Instantiate(chosenPrefab, transform.position, Quaternion.identity);
+        var prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+        var enemy = Instantiate(prefab, transform.position, Quaternion.identity);
 
-        EnemyDeathTracker tracker = enemy.AddComponent<EnemyDeathTracker>();
-        tracker.spawner = this;
+        var tracker = enemy.GetComponent<EnemyDeathTracker>();
+        if (tracker == null)
+            tracker = enemy.AddComponent<EnemyDeathTracker>();
 
-        currentEnemies++;
+        tracker.Init(this);
+
+        spawnedCount++;
+        aliveCount++;
     }
 
-    public void EnemyDied()
+    public void OnEnemyDied(Vector3 deathPosition)
     {
-        currentEnemies = Mathf.Max(0, currentEnemies - 1);
+        aliveCount = Mathf.Max(0, aliveCount - 1);
+
+        bool keyExistsInScene = anyKeyDropped || (!string.IsNullOrWhiteSpace(keySearchTag) && GameObject.FindWithTag(keySearchTag) != null);
+
+        if(!keyDropped && !keyExistsInScene && spawnedCount >= totalToSpawn && aliveCount == 0 && keyPrefab != null)
+        {
+            Vector3 dropPos = keyDropPoint ? keyDropPoint.position : (deathPosition + Vector3.up * 0.2f);
+            Instantiate(keyPrefab, dropPos, Quaternion.identity);
+            keyDropped = true;
+            anyKeyDropped = true;
+        }
+    }
+
+    private void OnValidate()
+    {
+        spawnInterval = Mathf.Max(0.05f, spawnInterval);
+        maxEnemies = Mathf.Max(0, maxEnemies);
+        totalToSpawn = Mathf.Max(0, totalToSpawn);
     }
 
 

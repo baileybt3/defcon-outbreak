@@ -8,7 +8,7 @@ public class EnemyController : MonoBehaviour
     private int currentHealth;
 
     [Header("Movement")]
-    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float moveSpeed = 2f;
     [SerializeField] private float radiusOfSatisfaction = 2.0f;
     private Rigidbody rb;
     private Vector3 pendingMove;

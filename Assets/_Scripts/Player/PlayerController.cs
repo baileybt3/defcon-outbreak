@@ -51,6 +51,12 @@ public class PlayerController : MonoBehaviour
     private int money;
     public int Money => money;
 
+    [Header("Interaction")]
+    [SerializeField] private float interactRange = 5f;
+    [SerializeField] private LayerMask interactMask = ~0;
+    [SerializeField] private string keyTag = "Key";
+    public bool HasKey { get; private set; } = false;
+
     private void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -86,7 +92,7 @@ public class PlayerController : MonoBehaviour
         inputActions.PlayerInputActions.Sprint.started += _ => StartSprint();
         inputActions.PlayerInputActions.Sprint.canceled += _ => StopSprint();
 
-        //inputActions.PlayerInputActions.Interact.performed += ctx => TryInteract();
+        inputActions.PlayerInputActions.Interact.performed += ctx => TryInteract();
     }
 
     private void OnDisable()
@@ -173,21 +179,36 @@ public class PlayerController : MonoBehaviour
         isSprinting = false;
     }
 
-    //void TryInteract()
-    //{
-    //    float interactRange = 5f;
+    void TryInteract()
+    {
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
 
-    //    if (Physics.Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, interactRange))
-    //    {
-    //        PartOrderingComputer computer = hit.collider.GetComponent<PartOrderingComputer>();
-    //        if (computer != null)
-    //        {
-    //            computer.ToggleUI();
-    //            Debug.Log("Opened part ordering UI");
-    //            return;
-    //        }
-    //    }
-    //}
+        if (Physics.Raycast(ray, out RaycastHit hit, interactRange, interactMask))
+        {
+            // Key Pickup
+            if (!HasKey && (!string.IsNullOrWhiteSpace(keyTag) && hit.collider.CompareTag(keyTag)))
+            {
+                PickupKey(hit.collider.gameObject);
+                return;
+            }
+
+            //var computer = hit.collider.GetComponent<PartOrderingComputer>();
+            //if (computer == null)
+            //{
+            //    computer = hit.collider.GetComponentInParent<PartOrderingComputer>();
+            //}
+            //if(computer != null)
+            //{
+            //    computer.ToggleUI();
+            //    return;
+            //}
+
+            hit.collider.gameObject.SendMessage("OnInteract", this, SendMessageOptions.DontRequireReceiver);
+            hit.collider.gameObject.SendMessage("Press", SendMessageOptions.DontRequireReceiver);
+            hit.collider.gameObject.SendMessage("Click", SendMessageOptions.DontRequireReceiver);
+            hit.collider.gameObject.SendMessage("Activate", this, SendMessageOptions.DontRequireReceiver);
+        }
+    }
 
     // --- DAMAGE AND HEALING ---
     public void TakeDamage(int damage)
@@ -243,5 +264,36 @@ public class PlayerController : MonoBehaviour
     {
         if (amount <= 0) return;
         money += amount;
+    }
+
+    public bool TrySpend(int amount)
+    {
+        if (amount <= 0) return true;
+        if (money >= amount)
+        {
+            money -= amount;
+            return true;
+        }
+        Debug.Log("Not enough money.");
+        return false;
+    }
+
+    private void PickupKey(GameObject key)
+    {
+        HasKey = true;
+
+        var col = key.GetComponent<Collider>();
+        if (col) col.enabled = false;
+
+        var rbKey = key.GetComponent<Rigidbody>();
+        if (rbKey)
+        {
+            rbKey.linearVelocity = Vector3.zero;
+            rbKey.angularVelocity = Vector3.zero;
+            rbKey.isKinematic = true;
+        }
+
+        Destroy(key);
+        Debug.Log("Picked up key.");
     }
 }
