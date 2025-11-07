@@ -28,6 +28,10 @@ PrefabInstance:
       propertyPath: m_AnimatePhysics
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7519321484090420282, guid: 4d99d47e6e48a714c895368aed8a8fa6, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7519321484099765164, guid: 4d99d47e6e48a714c895368aed8a8fa6, type: 3}
       propertyPath: m_LocalScale.x
       value: 1
@@ -128,10 +132,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   maxHealth: 3
-  moveSpeed: 8
+  moveSpeed: 0.75
+  radiusOfSatisfaction: 1
   attackDamage: 10
   attackRate: 1.5
   damageTextPrefab: {fileID: 0}
+  killReward: 25
 --- !u!136 &7843120003898871627
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -180,5 +186,5 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
