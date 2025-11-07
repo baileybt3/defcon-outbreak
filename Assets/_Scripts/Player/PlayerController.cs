@@ -46,6 +46,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float recoilKick = 2f;
     private Vector3 recoilRotation;
 
+    [Header("Economy")]
+    [SerializeField] private int startingMoney = 0;
+    private int money;
+    public int Money => money;
+
     private void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -96,6 +101,7 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = false;
         
         currentHealth = maxHealth;
+        money = startingMoney;
         Time.timeScale = 1f; 
     }
 
@@ -231,5 +237,11 @@ public class PlayerController : MonoBehaviour
         float sideRecoil = Random.Range(-1f, 1f) * (recoilKick / 5f);
         recoilRotation += new Vector3(-recoilKick, sideRecoil, 0f);
         recoilRotation.x = Mathf.Clamp(recoilRotation.x, -recoilKick * 2, 0f);
+    }
+
+    public void AddMoney(int amount)
+    {
+        if (amount <= 0) return;
+        money += amount;
     }
 }

@@ -25,7 +25,10 @@ public class EnemyController : MonoBehaviour
     
     // --- Damage Feedback (for the optional damage popup feature) ---
     [Header("Damage Feedback")]
-    public GameObject damageTextPrefab; 
+    public GameObject damageTextPrefab;
+
+    [Header("Rewards")]
+    [SerializeField] private int killReward = 25;
     
     // --- Unity Lifecycle Methods ---
 
@@ -156,6 +159,11 @@ public class EnemyController : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
+        if(PlayerController.Instance != null)
+        {
+            PlayerController.Instance.AddMoney(killReward);
+        }
 
         Debug.Log(gameObject.name + " has died!");
         animator.SetInteger("State", 2);
