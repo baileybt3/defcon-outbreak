@@ -33,12 +33,6 @@ public class PartOrderingComputer : MonoBehaviour
     public void OnInteract(PlayerController pc)
     {
         if (pc != null) player = pc;
-        SetStatus("Ready.");
-    }
-
-    public void ToggleUI()
-    {
-        SetStatus("Select an item.");
     }
 
     // --- Purchase Buttons ---
