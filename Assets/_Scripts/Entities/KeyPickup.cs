@@ -4,7 +4,8 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(Collider))]
 public class KeyPickup : MonoBehaviour
 {
-    [SerializeField] private string nextSceneName = "";
+    [SerializeField] private string nextSceneName = "Street";
+    private bool pickedUp = false;
 
     private bool playerInRange;
 
@@ -16,7 +17,17 @@ public class KeyPickup : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (pickedUp) return;
+
         if (other.GetComponent<PlayerController>() != null)
+        {
+            pickedUp = true;
+
+            if(pickedUp)
+            {
+                LoadNextScene();
+            }
+        }
             playerInRange = true;
     }
 
@@ -35,5 +46,11 @@ public class KeyPickup : MonoBehaviour
             else
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
         }
+    }
+
+    void LoadNextScene()
+    {
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(currentSceneIndex + 1);
     }
 }
