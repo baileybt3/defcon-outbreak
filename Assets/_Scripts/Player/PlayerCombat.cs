@@ -12,7 +12,7 @@ public class PlayerCombat : MonoBehaviour
     public float fireRate = 0.2f;
     public float reloadTime = 1.5f;
     
-    [Header("Inaccuracy")] // NEW: Adjust these values in the Inspector!
+    [Header("Inaccuracy")]
     [SerializeField] private float maxSpreadAngle = 3f; // Max angle (in degrees) the bullet can deviate
     [SerializeField] private float firePointDistance = 10f; // Distance used to calculate the spread vector
 
@@ -23,7 +23,7 @@ public class PlayerCombat : MonoBehaviour
     private bool isReloading = false;
 
     [Header("References")]
-    public Camera playerCamera; // *** CHECK THIS REFERENCE IN THE INSPECTOR! ***
+    public Camera playerCamera;
     private AudioSource audioSource;
     private PlayerController playerController;
 
@@ -31,6 +31,8 @@ public class PlayerCombat : MonoBehaviour
     public AudioClip shootSound;
     public AudioClip reloadStartSound;
     public AudioClip dryFireSound;
+    float shootSoundVolume = 0.5f;
+    float dryFireVolume = 0.5f;
 
     [Header("Visual Effects")]
     public ParticleSystem muzzleFlash;
@@ -71,7 +73,6 @@ public class PlayerCombat : MonoBehaviour
 
     void TryShoot()
     {
-        // NEW: Check if the player is alive first
         if (playerController == null || !playerController.IsAlive)
             return;
 
@@ -82,7 +83,7 @@ public class PlayerCombat : MonoBehaviour
         {
             if (dryFireSound != null)
             {
-                audioSource.PlayOneShot(dryFireSound);
+                audioSource.PlayOneShot(dryFireSound, dryFireVolume);
             }
             StartCoroutine(Reload()); 
             return;
@@ -97,7 +98,7 @@ public class PlayerCombat : MonoBehaviour
         // 1. Play Sound
         if (shootSound != null)
         {
-            audioSource.PlayOneShot(shootSound);
+            audioSource.PlayOneShot(shootSound, shootSoundVolume);
         }
 
         // 2. Trigger Recoil
