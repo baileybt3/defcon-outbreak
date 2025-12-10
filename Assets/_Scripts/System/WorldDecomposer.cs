@@ -4,13 +4,17 @@ using UnityEngine;
 
 public class WorldDecomposer : MonoBehaviour
 {
+    [Header("Grid Settings")]
+    [SerializeField] private int terrainWidth = 80;
+    [SerializeField] private int terrainLength = 80;
+    [SerializeField] private int nodeSize = 1;
+
+    [Header("Raycast Settings")]
+    [SerializeField] private float raycastHeight = 20f;
+    [SerializeField] private float raycastDistance = 40f;
+    [SerializeField] private LayerMask blockingLayers = ~0; //everything by default
 
     private int[,] worldData;
-    private int nodeSize = 1;
-
-    private int terrainWidth = 80;
-    private int terrainLength = 80;
-
     private int rows;
     private int cols;
 
@@ -28,9 +32,11 @@ public class WorldDecomposer : MonoBehaviour
 
     public void DecomposeWorld()
     {
+        //Center the grid on center Emtpy gameObject
+        Vector3 center = transform.position;
 
-        float startX = -terrainWidth / 2f;
-        float startZ = -terrainLength / 2f;
+        float startX = center.x - terrainWidth / 2f;
+        float startZ = center.z - terrainLength / 2f;
 
         float nodeCenterOffset = nodeSize / 2f;
 
@@ -47,30 +53,21 @@ public class WorldDecomposer : MonoBehaviour
                 Vector3 startPos = new Vector3(x, 20f, z);
 
 
-
                 // Does our raycast hit anything at this point in the map
-
                 RaycastHit hit;
 
-                // Bit shift the index of the layer (8) to get a bit mask
-                int layerMask = 1 << 8;
 
-                // This would cast rays only against colliders in layer 8.
-                // But instead we want to collide against everything except layer 8. The ~ operator does this, it inverts a bitmask.
-                layerMask = ~layerMask;
-
-                // Does the ray intersect any objects excluding the player layer
-                if (Physics.Raycast(startPos, Vector3.down, out hit, Mathf.Infinity, layerMask))
+                // Does the ray intersect any objects
+                if (Physics.Raycast(startPos, Vector3.down, out hit, raycastDistance, blockingLayers))
                 {
 
-                    print("Hit something at row: " + row + " col: " + col);
-                    Debug.DrawRay(startPos, Vector3.down * 20, Color.red, 50000);
+                    Debug.DrawRay(startPos, Vector3.down * raycastDistance, Color.red, 50000);
                     worldData[row, col] = 1;
 
                 }
                 else
                 {
-                    Debug.DrawRay(startPos, Vector3.down * 20, Color.green, 50000);
+                    Debug.DrawRay(startPos, Vector3.down * raycastDistance, Color.green, 50000);
                     worldData[row, col] = 0;
                 }
             }
