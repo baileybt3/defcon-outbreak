@@ -136,6 +136,8 @@ MonoBehaviour:
   radiusOfSatisfaction: 1
   attackDamage: 10
   attackRate: 1.5
+  worldDecomposer: {fileID: 0}
+  repathInterval: 1
   damageTextPrefab: {fileID: 0}
   killReward: 25
 --- !u!136 &7843120003898871627

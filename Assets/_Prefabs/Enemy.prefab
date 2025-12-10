@@ -128,6 +128,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SeekPlayer
   maxHealth: 3
   moveSpeed: 2
+  radiusOfSatisfaction: 2
   attackDamage: 10
   attackRate: 1.5
+  worldDecomposer: {fileID: 1857893746684967148, guid: c869db309a69f4b44a8cf0708827723d, type: 3}
+  repathInterval: 1
   damageTextPrefab: {fileID: 0}
+  killReward: 25

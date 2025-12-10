@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour
 {
@@ -18,6 +19,16 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private float attackRate = 1.5f; 
     private float lastAttackTime;
 
+    [Header("Pathfinding")]
+    [SerializeField] private WorldDecomposer worldDecomposer;
+
+    [SerializeField] private float repathInterval = 1.0f;
+    private float lastPathTime;
+
+    private List<Vector3> pathPoints;
+    private int currentPathIndex = 0;
+
+    [Header("Animations")]
     private Animator animator;
     private bool isAttacking = false;
     private bool isDead = false;
@@ -36,6 +47,7 @@ public class EnemyController : MonoBehaviour
     {
         currentHealth = maxHealth;
         lastAttackTime = Time.time - attackRate;
+        lastPathTime = -repathInterval;
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         animator.SetInteger("State", 0);
@@ -80,12 +92,13 @@ public class EnemyController : MonoBehaviour
     {
         // Use PlayerController.Instance.transform for player position
         Vector3 playerPos = PlayerController.Instance.transform.position;
-        Vector3 towardsTarget = playerPos - transform.position; // Use local transform
-        towardsTarget.y = 0f;
+        playerPos.y = transform.position.y;
 
-        float distance = towardsTarget.magnitude;
+        Vector3 toPlayer = playerPos - transform.position;
+        float distanceToPlayer = toPlayer.magnitude;
 
-        if (distance <= radiusOfSatisfaction)
+        // If we are close enough, stop moving and attack
+        if (distanceToPlayer <= radiusOfSatisfaction)
         {
             isAttacking = true;
             pendingMove = Vector3.zero;
@@ -98,20 +111,59 @@ public class EnemyController : MonoBehaviour
             AttackPlayer();
             return;
         }
-        else
+
+        // Otherwise attack
+        isAttacking = false;
+
+        // A* Pathfinding
+        if(worldDecomposer != null)
         {
-            isAttacking = false;
+            bool needNewPath = pathPoints == null ||
+                               pathPoints.Count == 0 ||
+                               currentPathIndex >= pathPoints.Count ||
+                               Time.time >= lastPathTime + repathInterval;
+            if (needNewPath)
+            {
+                // Use A*
+                pathPoints = AStarPathFinding.FindPath(worldDecomposer, transform.position, playerPos);
+
+                currentPathIndex = 0;
+                lastPathTime = Time.time;
+            }
         }
 
-        Vector3 dir = towardsTarget.normalized;
+        //Default target is player
+        Vector3 moveTarget = playerPos;
+
+        //If we have valid A* path, follow waypoint
+        if(pathPoints != null && pathPoints.Count > 0 && currentPathIndex < pathPoints.Count)
+        {
+            moveTarget = pathPoints[currentPathIndex];
+            moveTarget.y = transform.position.y;
+
+            Vector3 toWayPoint = moveTarget - transform.position;
+            float distToWayPoint = toWayPoint.magnitude;
+
+            // If close to waypoint, advance to next one
+            if(distToWayPoint <= radiusOfSatisfaction * 0.5f && currentPathIndex < pathPoints.Count - 1)
+            {
+                currentPathIndex++;
+                moveTarget = pathPoints[currentPathIndex];
+                moveTarget.y = transform.position.y;
+            }
+        }
+
+        Vector3 toTarget = moveTarget - transform.position;
+        Vector3 dir = toTarget.normalized;
+
         if(dir.sqrMagnitude > 0.0001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(dir);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation, targetRotation, 10f * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
         }
 
         pendingMove = transform.forward * moveSpeed;
+
     }
 
     void AttackPlayer()
