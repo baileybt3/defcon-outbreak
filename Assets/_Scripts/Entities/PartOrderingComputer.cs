@@ -29,7 +29,7 @@ public class PartOrderingComputer : MonoBehaviour
         SetStatus("Ready.");
     }
 
-    // Called by your PlayerController via F-key raycast (SendMessage("OnInteract", player))
+    // Called by PlayerController via F key raycast
     public void OnInteract(PlayerController pc)
     {
         if (pc != null) player = pc;

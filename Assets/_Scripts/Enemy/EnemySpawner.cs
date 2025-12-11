@@ -8,6 +8,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float spawnInterval = 3f;
     [SerializeField] private int maxEnemies = 5;
     [SerializeField] private int totalToSpawn = 20;
+    [SerializeField] private float spawnRadius = 3f;
 
     [Header("Key Drop")]
     [SerializeField] private GameObject keyPrefab;
@@ -47,7 +48,8 @@ public class EnemySpawner : MonoBehaviour
             return;
 
         var prefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
-        var enemy = Instantiate(prefab, transform.position, Quaternion.identity);
+        Vector3 spawnPos = GetRandomSpawnPosition();
+        var enemy = Instantiate(prefab, spawnPos, Quaternion.identity);
 
         var tracker = enemy.GetComponent<EnemyDeathTracker>();
         if (tracker == null)
@@ -79,6 +81,17 @@ public class EnemySpawner : MonoBehaviour
         spawnInterval = Mathf.Max(0.05f, spawnInterval);
         maxEnemies = Mathf.Max(0, maxEnemies);
         totalToSpawn = Mathf.Max(0, totalToSpawn);
+    }
+
+    private Vector3 GetRandomSpawnPosition()
+    {
+        //Random point in radius
+        Vector2 circle = Random.insideUnitCircle * spawnRadius;
+
+        Vector3 pos = transform.position;
+        pos += new Vector3(circle.x, 0f, circle.y);
+
+        return pos;
     }
 
 

@@ -4,13 +4,13 @@ using UnityEngine.UI;
 public class PlayerTutorialUI : MonoBehaviour
 {
     [Header("Panels")]
-    [SerializeField] private GameObject tutorialPromptPanel;         // Yes/No popup
-    [SerializeField] private GameObject tutorialInstructionsPanel;   // Instructions + Close button
+    [SerializeField] private GameObject tutorialPromptPanel;         
+    [SerializeField] private GameObject tutorialInstructionsPanel;   
 
     [Header("Buttons")]
-    [SerializeField] private Button promptYesButton;         // "Yes" on prompt
-    [SerializeField] private Button promptNoButton;          // "No" on prompt
-    [SerializeField] private Button instructionsCloseButton; // "Close" on instructions panel
+    [SerializeField] private Button promptYesButton;       
+    [SerializeField] private Button promptNoButton;          
+    [SerializeField] private Button instructionsCloseButton; 
 
     [Header("Settings")]
     [SerializeField] private bool pauseGameWhenOpen = true;
@@ -31,7 +31,7 @@ public class PlayerTutorialUI : MonoBehaviour
 
     private void OnEnable()
     {
-        // Wire buttons via serialized references
+        // Wire buttons
         if (promptYesButton != null)
             promptYesButton.onClick.AddListener(OnPromptYesClicked);
 
@@ -63,31 +63,28 @@ public class PlayerTutorialUI : MonoBehaviour
         }
     }
 
-    // ----- BUTTON METHODS -----
-
-    // Yes button: hide prompt, show instructions
+    // Yes button
     private void OnPromptYesClicked()
     {
         HidePrompt();
         ShowInstructions();
     }
 
-    // No button: hide prompt, resume game
+    // No button
     private void OnPromptNoClicked()
     {
         HidePrompt();
         RestoreTimeAndCursor();
     }
 
-    // Close button on instructions panel: hide instructions, resume game
+    // Close button on instructions panel
     private void OnCloseInstructionsClicked()
     {
         HideInstructions();
         RestoreTimeAndCursor();
     }
 
-    // ----- INTERNAL HELPERS -----
-
+    // Helpers
     private void ShowPrompt()
     {
         if (pauseGameWhenOpen)

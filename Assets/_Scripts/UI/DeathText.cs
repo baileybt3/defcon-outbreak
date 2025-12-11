@@ -1,12 +1,11 @@
 using UnityEngine;
-using TMPro; // REQUIRED: For TextMeshPro components
+using TMPro;
 
 [RequireComponent(typeof(TextMeshPro))]
 public class DamageText : MonoBehaviour
 {
-    // These fields are set in the Inspector on the Prefab
-    public float destroyTime = 1f; // How long the text lasts
-    public Vector3 moveSpeed = new Vector3(0, 1, 0); // Floats text upwards
+    public float destroyTime = 1f; 
+    public Vector3 moveSpeed = new Vector3(0, 1, 0); 
     
     private TextMeshPro textMesh;
     private Color startColor;
@@ -19,7 +18,7 @@ public class DamageText : MonoBehaviour
 
     private void Start()
     {
-        // Destroy the object after its display time is up
+        // Destroy the object after its display time
         Destroy(gameObject, destroyTime);
     }
 
@@ -34,7 +33,6 @@ public class DamageText : MonoBehaviour
         textMesh.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
     }
 
-    // Called by the EnemyController when the enemy is hit
     public void SetDamageValue(int damage)
     {
         textMesh.text = damage.ToString();

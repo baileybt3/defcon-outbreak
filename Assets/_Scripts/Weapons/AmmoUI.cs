@@ -17,7 +17,7 @@ public class AmmoUI : MonoBehaviour
 
     private void Start()
     {
-        // Ensure the Game Over panel is hidden at start
+        // Hide panel at start
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(false);
@@ -31,12 +31,11 @@ public class AmmoUI : MonoBehaviour
         {
             if (playerController.IsAlive)
             {
-                // Displaying health using the new public properties
                 healthText.text = $"Health: {playerController.CurrentHealth} / {playerController.MaxHealth}";
             }
             else
             {
-                // Player is dead, show game over screen
+                // if Player is dead, show game over screen
                 if (gameOverPanel != null && !gameOverPanel.activeSelf)
                 {
                     gameOverPanel.SetActive(true);
