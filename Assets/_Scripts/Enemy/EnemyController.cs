@@ -4,6 +4,12 @@ using System.Collections.Generic;
 
 public class EnemyController : MonoBehaviour
 {
+    // FSM
+    private enum EnemyState
+    {
+        Idle, Alert, Chase, Attack, Dead
+    }
+
     [Header("Health")]
     [SerializeField] private int maxHealth = 3;
     private int currentHealth;
@@ -23,39 +29,76 @@ public class EnemyController : MonoBehaviour
     [SerializeField] private WorldDecomposer worldDecomposer;
     [SerializeField] private float repathInterval = 1.0f;
     [SerializeField] private float repathDistanceThreshold = 1.5f;
+    [SerializeField] private float repathJitter = 0.3f;
     private float lastPathTime;
+    private float nextRepathTime;
     private Vector3 lastPathTarget;
     private List<Vector3> pathPoints;
     private int currentPathIndex = 0;
+
+    [Header("Zombie perception")]
+    [SerializeField] private float detectionRadius = 15f;
+    [SerializeField] private float loseInterestRadius = 25f;
+    [SerializeField] private float alertDuration = 1.0f;
+    private float alertEndTime;
+
+    [Header("Crowd Behaviour")]
+    [SerializeField] private float separationRadius = 1.2f;
+    [SerializeField] private float separationStrength = 0.5f;
 
     [Header("Animations")]
     private Animator animator;
     private bool isAttacking = false;
     private bool isDead = false;
 
-    
-    // --- Damage Feedback (for the optional damage popup feature) ---
+    // Damage popup
     [Header("Damage Feedback")]
     public GameObject damageTextPrefab;
 
     [Header("Rewards")]
     [SerializeField] private int killReward = 25;
-    
-    // --- Unity Lifecycle Methods ---
+
+    [Header("FSM")]
+    [SerializeField] private EnemyState startingState = EnemyState.Idle;
+    private EnemyState currentState;
+
+    // Horde
+    private Vector3 formationOffset;
+    private float speedMultiplier = 1.0f;
+
+    //Enemy global list
+    public static List<EnemyController> AllEnemies = new List<EnemyController>();
+
+    private void OnEnable()
+    {
+        AllEnemies.Add(this);
+    }
+
+    private void OnDisable()
+    {
+        AllEnemies.Remove(this);
+    }
 
     private void Start()
     {
         currentHealth = maxHealth;
         lastAttackTime = Time.time - attackRate;
         lastPathTime = -repathInterval;
+
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
-        animator.SetInteger("State", 0);
 
         if(worldDecomposer == null)
         {
             worldDecomposer = FindFirstObjectByType<WorldDecomposer>();
         }
+
+        // Zombie differences
+        speedMultiplier = Random.Range(0.9f, 1.1f);
+        formationOffset = GetRandomFormationOffset();
+        nextRepathTime = Time.time + Random.Range(0f, repathInterval);
+
+        currentState = startingState;
 
     }
     private void FixedUpdate()
@@ -71,131 +114,275 @@ public class EnemyController : MonoBehaviour
     {
         if (isDead) return;
 
-        // Check if the player exists using the static Instance
-        if (PlayerController.Instance != null && currentHealth > 0)
+        if (PlayerController.Instance == null)
         {
-            MoveOrAttack();
-        }
-
-        // Animations
-        if (currentHealth <= 0)
-        {
-            animator.SetInteger("State", 2); //Death
-        }
-        else if (isAttacking)
-        {
-            animator.SetInteger("State", 1); //Attack
-        }
-        else
-        {
-            animator.SetInteger("State", 0); //Walk
-        }
-    }
-    
-    // --- Combat and Movement ---
-
-    void MoveOrAttack()
-    {
-        // Use PlayerController.Instance.transform for player position
-        Vector3 playerPos = PlayerController.Instance.transform.position;
-        playerPos.y = transform.position.y;
-
-        Vector3 toPlayer = playerPos - transform.position;
-        float distanceToPlayer = toPlayer.magnitude;
-
-        // If we are close enough, stop moving and attack
-        if (distanceToPlayer <= radiusOfSatisfaction)
-        {
-            isAttacking = true;
-            pendingMove = Vector3.zero;
-
-            if (rb != null)
-            {
-                rb.linearVelocity = Vector3.zero;
-                rb.angularVelocity = Vector3.zero;
-            }
-
-            AttackPlayer();
             return;
         }
 
-        // Otherwise attack
+        UpdateStateMachine();
+        UpdateAnimations();
+    }
+
+    // Finite State Machine
+    private void UpdateStateMachine()
+    {
+        switch (currentState)
+        {
+            case EnemyState.Idle:
+                UpdateIdle();
+                break;
+            case EnemyState.Alert:
+                UpdateAlert();
+                break;
+            case EnemyState.Chase:
+                UpdateChase();
+                break;
+            case EnemyState.Attack:
+                UpdateAttack();
+                break;
+            case EnemyState.Dead:
+                break;
+        }
+    }
+
+
+    private void EnterState(EnemyState newState)
+    {
+        if (currentState == newState)
+        {
+            return;
+        }
+
+        currentState = newState;
+
+        switch (newState)
+        {
+            case EnemyState.Idle:
+                pendingMove = Vector3.zero;
+                isAttacking = false;
+                break;
+
+            case EnemyState.Alert:
+                pendingMove = Vector3.zero;
+                isAttacking = false;
+                alertEndTime = Time.time + alertDuration;
+                break;
+
+            case EnemyState.Chase:
+                isAttacking = false;
+                break;
+
+            case EnemyState.Attack:
+                pendingMove = Vector3.zero;
+                isAttacking = true;
+                break;
+
+            case EnemyState.Dead:
+                pendingMove = Vector3.zero;
+                isAttacking = false;
+                break;
+        }
+    }
+
+    // FSM States
+    private void UpdateIdle()
+    {
+        pendingMove = Vector3.zero;
         isAttacking = false;
 
-        // A* Pathfinding
+        float distance = Vector3.Distance(transform.position, PlayerController.Instance.transform.position);
+        if(distance <= detectionRadius)
+        {
+            EnterState(EnemyState.Alert);
+        }
+    }
+
+    private void UpdateAlert()
+    {
+        pendingMove = Vector3.zero;
+        isAttacking = false;
+
+        Vector3 playerPos = PlayerController.Instance.transform.position;
+        Vector3 toPlayer = playerPos - transform.position;
+        toPlayer.y = 0f;
+
+        // Turn to face player
+        if(toPlayer.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(toPlayer.normalized);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+        }
+
+        float distance = toPlayer.magnitude;
+
+        if(distance > loseInterestRadius)
+        {
+            EnterState(EnemyState.Idle);
+            return;
+        }
+
+        if (Time.time >= alertEndTime)
+        {
+            EnterState(EnemyState.Chase);
+        }
+    }
+
+    private void UpdateChase()
+    {
         if(worldDecomposer == null)
         {
             pendingMove = Vector3.zero;
             return;
         }
 
-        //Decide if we need to recompute path
-        bool needNewPath = 
-            pathPoints == null ||
-            pathPoints.Count == 0 ||
-            currentPathIndex >= pathPoints.Count ||
-            Time.time >= lastPathTime + repathInterval;
+        Vector3 playerPos = PlayerController.Instance.transform.position;
+        playerPos.y = transform.position.y;
+
+        Vector3 toPlayer = playerPos - transform.position;
+        float distanceToPlayer = toPlayer.magnitude;
+
+        // Switch to attack if close to player
+        if(distanceToPlayer <= radiusOfSatisfaction)
+        {
+            EnterState(EnemyState.Attack);
+            return;
+        }
+
+        // if we lost player go to idle
+        if(distanceToPlayer > loseInterestRadius)
+        {
+            EnterState(EnemyState.Idle);
+            return;
+        }
+
+        // A* Pathfinding
+        bool targetMovedFar = (playerPos - lastPathTarget).sqrMagnitude >= repathDistanceThreshold * repathDistanceThreshold;
+
+        bool needNewPath = pathPoints == null || pathPoints.Count == 0 || currentPathIndex >= pathPoints.Count || targetMovedFar || Time.time >= nextRepathTime;
 
         if (needNewPath)
         {
-            // Run A*
-            pathPoints = AStarPathFinding.FindPath(worldDecomposer, transform.position, playerPos);
+            //Try offset target
+            Vector3 desiredTarget = playerPos + formationOffset;
+            desiredTarget.y = transform.position.y;
+
+            pathPoints = AStarPathFinding.FindPath(worldDecomposer, transform.position, desiredTarget);
+
+            if (pathPoints == null || pathPoints.Count == 0)
+            {
+                pathPoints = AStarPathFinding.FindPath(worldDecomposer, transform.position, playerPos);
+            }
+
             currentPathIndex = 0;
             lastPathTime = Time.time;
+            lastPathTarget = playerPos;
 
-            if(pathPoints == null || pathPoints.Count == 0)
-            {
-                pendingMove = Vector3.zero;
-                Debug.LogWarning("A* returned no path");
-                return;
-            }
+            float jitter = Random.Range(-repathJitter, repathJitter);
+            nextRepathTime = Time.time + Mathf.Max(0.05f, repathInterval + jitter);
         }
 
-        // No path? do nothing
-        if (pathPoints == null || pathPoints.Count == 0 || currentPathIndex >= pathPoints.Count)
+        // if still no path stand still
+        if(pathPoints == null || pathPoints.Count == 0 || currentPathIndex >= pathPoints.Count)
         {
             pendingMove = Vector3.zero;
             return;
         }
 
-        // Follow current waypoint from A* path
+        // Follow current waypoint
         Vector3 moveTarget = pathPoints[currentPathIndex];
         moveTarget.y = transform.position.y;
 
-        Vector3 toWayPoint = moveTarget - transform.position;
-        float distToWayPoint = toWayPoint.magnitude;
+        Vector3 toWaypoint = moveTarget - transform.position;
+        float distToWaypoint = toWaypoint.magnitude;
 
-        // If close to waypoint, advance to next one
-        if(distToWayPoint <= radiusOfSatisfaction * 0.5f && currentPathIndex < pathPoints.Count - 1)
+        // Move to next waypoint when close
+        if(distToWaypoint <= radiusOfSatisfaction * 0.5f && currentPathIndex < pathPoints.Count - 1)
         {
             currentPathIndex++;
             moveTarget = pathPoints[currentPathIndex];
             moveTarget.y = transform.position.y;
-            toWayPoint = moveTarget - transform.position;
+            toWaypoint = moveTarget - transform.position;
         }
 
-        Vector3 dir = toWayPoint.normalized;
+        Vector3 dir = toWaypoint.normalized;
+        Vector3 separation = ComputeSeparation();
 
-        if (dir.sqrMagnitude > 0.0001f)
+        Vector3 finalDir = dir + separation * separationStrength;
+
+        if(finalDir.sqrMagnitude > 0.0001f)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(dir);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                targetRotation,
-                10f * Time.deltaTime
-            );
-        }
+            finalDir.Normalize();
 
-        // Actually move
-        pendingMove = transform.forward * moveSpeed;
-        
+            Quaternion targetRotation = Quaternion.LookRotation(finalDir);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+
+            pendingMove = finalDir * moveSpeed * speedMultiplier;
+        }
+        else
+        {
+            pendingMove = Vector3.zero;
+        }
     }
 
+    private void UpdateAttack()
+    {
+        pendingMove = Vector3.zero;
+        isAttacking = true;
+
+        Vector3 playerPos = PlayerController.Instance.transform.position;
+        playerPos.y = transform.position.y;
+
+        Vector3 toPlayer = playerPos - transform.position;
+        float distanceToPlayer = toPlayer.magnitude;
+
+        // If player out of range Chase
+        if (distanceToPlayer > radiusOfSatisfaction * 1.2f)
+        {
+            EnterState(EnemyState.Chase);
+            return;
+        }
+
+        // Face player
+        if (toPlayer.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(toPlayer.normalized);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+        }
+
+        // Let AttackPlayer handle the attack rate
+        AttackPlayer();
+    }
+
+    // Animations
+    private void UpdateAnimations()
+    {
+        if (animator == null) return;
+
+        if (isDead)
+        {
+            animator.SetInteger("State", 2); // Death
+            return;
+        }
+
+        // Needs idle animation
+        switch (currentState)
+        {
+            case EnemyState.Attack:
+                animator.SetInteger("State", 1); // Attack
+                break;
+            case EnemyState.Idle:
+            case EnemyState.Alert:
+            case EnemyState.Chase:
+                animator.SetInteger("State", 0); // Walk / idle blend
+                break;
+        }
+    }
+
+    // Combat
     void AttackPlayer()
     {
         if (Time.time > lastAttackTime + attackRate)
         {
-            // Call TakeDamage on the player via the static Instance
             if (PlayerController.Instance != null)
             {
                 PlayerController.Instance.TakeDamage(attackDamage);
@@ -204,25 +391,26 @@ public class EnemyController : MonoBehaviour
         }
     }
 
-    // --- Public Methods (For Bullets and Damage Popups) ---
+    // ---------Public methods -----------
+    
 
     public void TakeDamage(int damageAmount)
     {
         if (currentHealth <= 0 || isDead) return;
-        
-        // --- Damage Popup Logic (from the previous step) ---
+
+        // Damage popup
         if (damageTextPrefab != null)
         {
-            Vector3 spawnPosition = transform.position + Vector3.up * 1f; 
+            Vector3 spawnPosition = transform.position + Vector3.up * 1f;
             GameObject damageTextObject = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
-            
+
             DamageText damageText = damageTextObject.GetComponent<DamageText>();
             if (damageText != null)
             {
                 damageText.SetDamageValue(damageAmount);
             }
         }
-        
+
         currentHealth -= damageAmount;
         Debug.Log("Enemy took " + damageAmount + " damage. Remaining health: " + currentHealth);
 
@@ -236,8 +424,9 @@ public class EnemyController : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+        EnterState(EnemyState.Dead);
 
-        if(PlayerController.Instance != null)
+        if (PlayerController.Instance != null)
         {
             PlayerController.Instance.AddMoney(killReward);
         }
@@ -256,20 +445,55 @@ public class EnemyController : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // Visualize A* path
-    private void OnDrawGizmosSelected()
+    // Helpers
+
+    private Vector3 GetRandomFormationOffset()
     {
-        if(pathPoints == null)
+        // Pick a ring roughly around the melee radius
+        float r = radiusOfSatisfaction * 0.8f;
+        Vector2 offset2D = Random.insideUnitCircle.normalized;
+        if (offset2D == Vector2.zero)
+            offset2D = Vector2.right;
+
+        return new Vector3(offset2D.x, 0f, offset2D.y) * r;
+    }
+
+    private Vector3 ComputeSeparation()
+    {
+        Vector3 separation = Vector3.zero;
+        int neighborCount = 0;
+
+        foreach (var other in AllEnemies)
         {
-            return;
+            if (other == null || other == this || other.isDead) continue;
+
+            Vector3 toOther = transform.position - other.transform.position;
+            float dist = toOther.magnitude;
+
+            if (dist > 0f && dist < separationRadius)
+            {
+                separation += toOther.normalized / dist;
+                neighborCount++;
+            }
         }
 
+        if (neighborCount > 0)
+        {
+            separation /= neighborCount;
+        }
+
+        return separation;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (pathPoints == null) return;
+
         Gizmos.color = Color.cyan;
-        for(int i = 0; i < pathPoints.Count; i++)
+        for (int i = 0; i < pathPoints.Count; i++)
         {
             Gizmos.DrawSphere(pathPoints[i], 0.2f);
-
-            if(i < pathPoints.Count - 1)
+            if (i < pathPoints.Count - 1)
             {
                 Gizmos.DrawLine(pathPoints[i], pathPoints[i + 1]);
             }
