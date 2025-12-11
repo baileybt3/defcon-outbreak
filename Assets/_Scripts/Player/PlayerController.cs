@@ -108,7 +108,6 @@ public class PlayerController : MonoBehaviour
         
         currentHealth = maxHealth;
         money = startingMoney;
-        Time.timeScale = 1f; 
     }
 
     private void Update()
@@ -245,8 +244,7 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Player has died! Restarting level...");
         
-        Time.timeScale = 0f; 
-        moveSpeed = 0f;
+        Time.timeScale = 1f; 
         
         int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
         SceneManager.LoadScene(currentSceneIndex);
