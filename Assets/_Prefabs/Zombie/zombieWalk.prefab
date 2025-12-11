@@ -138,8 +138,16 @@ MonoBehaviour:
   attackRate: 1.5
   worldDecomposer: {fileID: 0}
   repathInterval: 1
+  repathDistanceThreshold: 1.5
+  repathJitter: 0.3
+  detectionRadius: 15
+  loseInterestRadius: 25
+  alertDuration: 1
+  separationRadius: 1.2
+  separationStrength: 0.5
   damageTextPrefab: {fileID: 0}
   killReward: 25
+  startingState: 0
 --- !u!136 &7843120003898871627
 CapsuleCollider:
   m_ObjectHideFlags: 0
