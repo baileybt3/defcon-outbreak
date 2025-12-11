@@ -175,8 +175,13 @@ public static class AStarPathFinding
         int cols = world.Cols;
         int nodeSize = world.NodeSize;
 
-        float startX = -(cols * nodeSize) / 2f;
-        float startZ = -(rows * nodeSize) / 2f;
+        // grid centered at WorldDecomposer empty object
+        Vector3 center = world.transform.position;
+        float terrainWidth = cols * nodeSize;
+        float terrainLength = rows * nodeSize;
+
+        float startX = center.x - terrainWidth / 2f;
+        float startZ = center.z - terrainLength / 2f;
 
         int col = Mathf.FloorToInt((pos.x - startX) / nodeSize);
         int row = Mathf.FloorToInt((pos.z - startZ) / nodeSize);
@@ -194,8 +199,13 @@ public static class AStarPathFinding
         int cols = world.Cols;
         int nodeSize = world.NodeSize;
 
-        float startX = -(cols * nodeSize) / 2f;
-        float startZ = -(rows * nodeSize) / 2f;
+        // Match world decomposer grid origin
+        Vector3 center = world.transform.position;
+        float terrainWidth = cols * nodeSize;
+        float terrainLength = rows * nodeSize;
+
+        float startX = center.x - terrainWidth / 2f;
+        float startZ = center.z - terrainLength / 2f;
         float centerOffset = nodeSize / 2f;
 
         var result = new List<Vector3>(path.Count);

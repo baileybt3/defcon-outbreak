@@ -50,7 +50,7 @@ public class WorldDecomposer : MonoBehaviour
                 float x = startX + nodeCenterOffset + (nodeSize * col);
                 float z = startZ + nodeCenterOffset + (nodeSize * row);
 
-                Vector3 startPos = new Vector3(x, 20f, z);
+                Vector3 startPos = new Vector3(x, raycastHeight, z);
 
 
                 // Does our raycast hit anything at this point in the map

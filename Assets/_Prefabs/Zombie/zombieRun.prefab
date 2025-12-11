@@ -1243,7 +1243,7 @@ Animator:
   m_Controller: {fileID: 9100000, guid: 22103baf92795e1479a04279a9567ba8, type: 2}
   m_CullingMode: 1
   m_UpdateMode: 0
-  m_ApplyRootMotion: 1
+  m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
@@ -1284,6 +1284,8 @@ MonoBehaviour:
   radiusOfSatisfaction: 1
   attackDamage: 10
   attackRate: 1.5
+  worldDecomposer: {fileID: 0}
+  repathInterval: 1
   damageTextPrefab: {fileID: 0}
   killReward: 35
 --- !u!136 &-8318653930132323194

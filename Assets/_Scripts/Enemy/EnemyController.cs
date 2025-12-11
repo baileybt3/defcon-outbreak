@@ -21,10 +21,10 @@ public class EnemyController : MonoBehaviour
 
     [Header("Pathfinding")]
     [SerializeField] private WorldDecomposer worldDecomposer;
-
     [SerializeField] private float repathInterval = 1.0f;
+    [SerializeField] private float repathDistanceThreshold = 1.5f;
     private float lastPathTime;
-
+    private Vector3 lastPathTarget;
     private List<Vector3> pathPoints;
     private int currentPathIndex = 0;
 
@@ -51,6 +51,12 @@ public class EnemyController : MonoBehaviour
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody>();
         animator.SetInteger("State", 0);
+
+        if(worldDecomposer == null)
+        {
+            worldDecomposer = FindFirstObjectByType<WorldDecomposer>();
+        }
+
     }
     private void FixedUpdate()
     {
@@ -102,6 +108,7 @@ public class EnemyController : MonoBehaviour
         {
             isAttacking = true;
             pendingMove = Vector3.zero;
+
             if (rb != null)
             {
                 rb.linearVelocity = Vector3.zero;
@@ -116,54 +123,72 @@ public class EnemyController : MonoBehaviour
         isAttacking = false;
 
         // A* Pathfinding
-        if(worldDecomposer != null)
+        if(worldDecomposer == null)
         {
-            bool needNewPath = pathPoints == null ||
-                               pathPoints.Count == 0 ||
-                               currentPathIndex >= pathPoints.Count ||
-                               Time.time >= lastPathTime + repathInterval;
-            if (needNewPath)
-            {
-                // Use A*
-                pathPoints = AStarPathFinding.FindPath(worldDecomposer, transform.position, playerPos);
+            pendingMove = Vector3.zero;
+            return;
+        }
 
-                currentPathIndex = 0;
-                lastPathTime = Time.time;
+        //Decide if we need to recompute path
+        bool needNewPath = 
+            pathPoints == null ||
+            pathPoints.Count == 0 ||
+            currentPathIndex >= pathPoints.Count ||
+            Time.time >= lastPathTime + repathInterval;
+
+        if (needNewPath)
+        {
+            // Run A*
+            pathPoints = AStarPathFinding.FindPath(worldDecomposer, transform.position, playerPos);
+            currentPathIndex = 0;
+            lastPathTime = Time.time;
+
+            if(pathPoints == null || pathPoints.Count == 0)
+            {
+                pendingMove = Vector3.zero;
+                Debug.LogWarning("A* returned no path");
+                return;
             }
         }
 
-        //Default target is player
-        Vector3 moveTarget = playerPos;
-
-        //If we have valid A* path, follow waypoint
-        if(pathPoints != null && pathPoints.Count > 0 && currentPathIndex < pathPoints.Count)
+        // No path? do nothing
+        if (pathPoints == null || pathPoints.Count == 0 || currentPathIndex >= pathPoints.Count)
         {
+            pendingMove = Vector3.zero;
+            return;
+        }
+
+        // Follow current waypoint from A* path
+        Vector3 moveTarget = pathPoints[currentPathIndex];
+        moveTarget.y = transform.position.y;
+
+        Vector3 toWayPoint = moveTarget - transform.position;
+        float distToWayPoint = toWayPoint.magnitude;
+
+        // If close to waypoint, advance to next one
+        if(distToWayPoint <= radiusOfSatisfaction * 0.5f && currentPathIndex < pathPoints.Count - 1)
+        {
+            currentPathIndex++;
             moveTarget = pathPoints[currentPathIndex];
             moveTarget.y = transform.position.y;
-
-            Vector3 toWayPoint = moveTarget - transform.position;
-            float distToWayPoint = toWayPoint.magnitude;
-
-            // If close to waypoint, advance to next one
-            if(distToWayPoint <= radiusOfSatisfaction * 0.5f && currentPathIndex < pathPoints.Count - 1)
-            {
-                currentPathIndex++;
-                moveTarget = pathPoints[currentPathIndex];
-                moveTarget.y = transform.position.y;
-            }
+            toWayPoint = moveTarget - transform.position;
         }
 
-        Vector3 toTarget = moveTarget - transform.position;
-        Vector3 dir = toTarget.normalized;
+        Vector3 dir = toWayPoint.normalized;
 
-        if(dir.sqrMagnitude > 0.0001f)
+        if (dir.sqrMagnitude > 0.0001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(dir);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, 10f * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetRotation,
+                10f * Time.deltaTime
+            );
         }
 
+        // Actually move
         pendingMove = transform.forward * moveSpeed;
-
+        
     }
 
     void AttackPlayer()
@@ -229,5 +254,25 @@ public class EnemyController : MonoBehaviour
     {
         yield return new WaitForSeconds(4f);
         Destroy(gameObject);
+    }
+
+    // Visualize A* path
+    private void OnDrawGizmosSelected()
+    {
+        if(pathPoints == null)
+        {
+            return;
+        }
+
+        Gizmos.color = Color.cyan;
+        for(int i = 0; i < pathPoints.Count; i++)
+        {
+            Gizmos.DrawSphere(pathPoints[i], 0.2f);
+
+            if(i < pathPoints.Count - 1)
+            {
+                Gizmos.DrawLine(pathPoints[i], pathPoints[i + 1]);
+            }
+        }
     }
 }
