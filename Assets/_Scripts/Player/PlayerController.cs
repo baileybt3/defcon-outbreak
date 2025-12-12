@@ -242,12 +242,8 @@ public class PlayerController : MonoBehaviour
 
     private void Die()
     {
-        Debug.Log("Player has died! Restarting level...");
-        
-        Time.timeScale = 1f; 
-        
-        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-        SceneManager.LoadScene(currentSceneIndex);
+        Debug.Log("Player has died");
+        inputActions.Disable();
     }
     
     // --- Recoil --
@@ -291,7 +287,10 @@ public class PlayerController : MonoBehaviour
             rbKey.isKinematic = true;
         }
 
-        Destroy(key);
         Debug.Log("Picked up key.");
+
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(currentIndex + 1);
+
     }
 }

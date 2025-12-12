@@ -1401,7 +1401,7 @@ MonoBehaviour:
   uiPanel: {fileID: 6222845755337874303}
   defaultSelectedButton: {fileID: 4797884650573994920}
   statusText: {fileID: 7259995813725223861}
-  player: {fileID: 8801494215295778712, guid: 9b80fcd67e5055748bc601ce2bd4911b, type: 3}
+  player: {fileID: 2275014049134560374, guid: 25a749b7760173948b30612b180bcc60, type: 3}
   ammoCost: 50
   healthKitCost: 75
   weaponPartCost: 150

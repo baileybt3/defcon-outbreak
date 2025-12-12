@@ -145,7 +145,6 @@ MonoBehaviour:
   alertDuration: 1
   separationRadius: 1.2
   separationStrength: 0.5
-  damageTextPrefab: {fileID: 0}
   killReward: 25
   startingState: 0
 --- !u!136 &7843120003898871627

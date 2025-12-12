@@ -1,5 +1,7 @@
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class PlayerTutorialUI : MonoBehaviour
 {
@@ -16,6 +18,7 @@ public class PlayerTutorialUI : MonoBehaviour
     [SerializeField] private bool pauseGameWhenOpen = true;
     [SerializeField] private bool showPromptOnSceneStart = true;
     [SerializeField] private bool manageCursor = true;
+    [SerializeField] private string tutorialSceneName = "02_Tutorial";
 
     private float previousTimeScale = 1f;
 
@@ -57,10 +60,33 @@ public class PlayerTutorialUI : MonoBehaviour
 
     private void Start()
     {
+        // Only run UI in the tutorial scene
+        if (!IsInTutorialScene())
+        {
+            // make sure panels stay hidden in other scenes
+            if (tutorialPromptPanel != null)
+                tutorialPromptPanel.SetActive(false);
+
+            if (tutorialInstructionsPanel != null)
+                tutorialInstructionsPanel.SetActive(false);
+
+            return;
+        }
+
         if (showPromptOnSceneStart)
         {
-            ShowPrompt();
+            // Wait one frame so PlayerController.Start() finishes first
+            StartCoroutine(ShowPromptNextFrame());
         }
+    }
+
+    private bool IsInTutorialScene()
+    {
+        if (!string.IsNullOrEmpty(tutorialSceneName))
+        {
+            return SceneManager.GetActiveScene().name == tutorialSceneName;
+        }
+        return false;
     }
 
     // Yes button
@@ -139,5 +165,11 @@ public class PlayerTutorialUI : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    private IEnumerator ShowPromptNextFrame()
+    {
+        yield return null;
+        ShowPrompt();
     }
 }

@@ -51,10 +51,6 @@ public class EnemyController : MonoBehaviour
     private bool isAttacking = false;
     private bool isDead = false;
 
-    // Damage popup
-    [Header("Damage Feedback")]
-    public GameObject damageTextPrefab;
-
     [Header("Rewards")]
     [SerializeField] private int killReward = 25;
 
@@ -397,19 +393,6 @@ public class EnemyController : MonoBehaviour
     public void TakeDamage(int damageAmount)
     {
         if (currentHealth <= 0 || isDead) return;
-
-        // Damage popup
-        if (damageTextPrefab != null)
-        {
-            Vector3 spawnPosition = transform.position + Vector3.up * 1f;
-            GameObject damageTextObject = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity);
-
-            DamageText damageText = damageTextObject.GetComponent<DamageText>();
-            if (damageText != null)
-            {
-                damageText.SetDamageValue(damageAmount);
-            }
-        }
 
         currentHealth -= damageAmount;
         Debug.Log("Enemy took " + damageAmount + " damage. Remaining health: " + currentHealth);
