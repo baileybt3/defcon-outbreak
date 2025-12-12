@@ -130,7 +130,10 @@ GameObject:
   - component: {fileID: 124379455}
   - component: {fileID: 124379454}
   - component: {fileID: 124379453}
+<<<<<<< Updated upstream
   - component: {fileID: 124379456}
+=======
+>>>>>>> Stashed changes
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -212,6 +215,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+<<<<<<< Updated upstream
 --- !u!114 &124379456
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1738,6 +1742,8 @@ MonoBehaviour:
   m_SelectedSharedVerticesCount: 0
   m_SelectedCoincidentVertexCount: 0
   m_SelectedCoincidentVertices: 
+=======
+>>>>>>> Stashed changes
 --- !u!1 &1202308010
 GameObject:
   m_ObjectHideFlags: 0
@@ -1748,7 +1754,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1202308012}
   - component: {fileID: 1202308011}
+<<<<<<< Updated upstream
   - component: {fileID: 1202308013}
+=======
+>>>>>>> Stashed changes
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -1836,6 +1845,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+<<<<<<< Updated upstream
 --- !u!114 &1202308013
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2043,10 +2053,15 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+=======
+>>>>>>> Stashed changes
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 124379455}
   - {fileID: 1202308012}
+<<<<<<< Updated upstream
   - {fileID: 399711543}
+=======
+>>>>>>> Stashed changes
