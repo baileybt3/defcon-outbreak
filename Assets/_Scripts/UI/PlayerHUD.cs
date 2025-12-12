@@ -11,16 +11,21 @@ public class PlayerHUD : MonoBehaviour
     [SerializeField] private PlayerController player;
     [SerializeField] private TextMeshProUGUI moneyText;
 
-    [Header("Death UI")]
-    [SerializeField] private GameObject deathPanel;
-    [SerializeField] private TextMeshProUGUI deathText;
-    [SerializeField] private bool pauseOnDeath = true;
+    [Header("Win/Lose UI")]
+    [SerializeField] private GameObject endPanel;
+    [SerializeField] private GameObject winText;
+    [SerializeField] private GameObject loseText;
+    [SerializeField] private bool pauseOnEnd = true;
 
-    private bool hasShownDeath = false;
+    private bool hasShownEnd = false;
 
 
     private void Awake()
     {
+        Time.timeScale = 1f;
+        hasShownEnd = false;
+
+
         if (player == null)
         {
             player = PlayerController.Instance;
@@ -30,11 +35,10 @@ public class PlayerHUD : MonoBehaviour
             healthBar.maxValue = player.MaxHealth;
         }
 
-        if(deathPanel != null)
-        {
-            deathPanel.SetActive(false);
-        }
-            
+        if (endPanel != null) endPanel.SetActive(false);
+        if (winText != null) winText.SetActive(false);
+        if (loseText != null) loseText.SetActive(false);
+
         UpdateOnce();
     }
     // Update is called once per frame
@@ -42,9 +46,9 @@ public class PlayerHUD : MonoBehaviour
     {
         UpdateOnce();
 
-        if(!hasShownDeath && player != null && player.CurrentHealth <= 0)
+        if(!hasShownEnd && player != null && player.CurrentHealth <= 0)
         {
-            ShowDeathScreen();
+            ShowEndScreen(false);
         }
     }
 
@@ -68,24 +72,20 @@ public class PlayerHUD : MonoBehaviour
         }
     }
 
-    public void ShowDeathScreen()
+    public void ShowEndScreen(bool won)
     {
-        hasShownDeath = true;
+        if (hasShownEnd) return;
+        hasShownEnd = true;
 
-        if(deathPanel != null)
-        {
-            deathPanel.SetActive(true);
-        }
+        if (endPanel != null) endPanel.SetActive(true);
+        if (winText != null) winText.SetActive(won);
+        if (loseText != null) loseText.SetActive(!won);
 
-        if(deathText != null)
-        {
-            deathText.text = "YOU DIED";
-        }
+        if (player != null)
+            player.InputActions.Disable();
 
-        if (pauseOnDeath)
-        {
+        if (pauseOnEnd)
             Time.timeScale = 0f;
-        }
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -95,9 +95,15 @@ public class PlayerHUD : MonoBehaviour
     {
         Time.timeScale = 1f;
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = true;
+        Cursor.visible = false;
 
         Scene current = SceneManager.GetActiveScene();
         SceneManager.LoadScene(current.buildIndex);
+    }
+
+    public  void OnQuitButton()
+    {
+        Time.timeScale = 1f;
+        Application.Quit();
     }
 }

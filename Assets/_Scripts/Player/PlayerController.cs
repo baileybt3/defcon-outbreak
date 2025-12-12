@@ -57,6 +57,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private string keyTag = "Key";
     public bool HasKey { get; private set; } = false;
 
+    [SerializeField] private string finalSceneName = "04_MilitaryBase";
+    private PlayerHUD hud;
+
+
+
     private void Awake()
     {
         inputActions = new InputSystem_Actions();
@@ -108,6 +113,8 @@ public class PlayerController : MonoBehaviour
         
         currentHealth = maxHealth;
         money = startingMoney;
+
+        hud = FindFirstObjectByType<PlayerHUD>();
     }
 
     private void Update()
@@ -244,6 +251,11 @@ public class PlayerController : MonoBehaviour
     {
         Debug.Log("Player has died");
         inputActions.Disable();
+
+        if(hud != null)
+        {
+            hud.ShowEndScreen(false);
+        }
     }
     
     // --- Recoil --
@@ -289,8 +301,16 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log("Picked up key.");
 
+        if (SceneManager.GetActiveScene().name == finalSceneName)
+        {
+            inputActions.Disable();
+            if (hud != null) hud.ShowEndScreen(true);
+            return;
+        }
+
         int currentIndex = SceneManager.GetActiveScene().buildIndex;
         SceneManager.LoadScene(currentIndex + 1);
+
 
     }
 }
